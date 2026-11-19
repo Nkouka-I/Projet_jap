@@ -70,17 +70,22 @@ Le travail est découpé en **tranches verticales** : chaque tâche livre une fo
 
 ### Prérequis
 
-- le JAR sqlite-jdbc-3.46.1.3.jar dans lib/ 
-- sqlite3 pour créer la base à partir du script.
-- Le pilote JDBC SQLite dans `lib/`
+- JDK (version à préciser)
+- Le pilote JDBC SQLite **sqlite-jdbc 3.46.1.3**, fourni dans `lib/`
+- `sqlite3` en ligne de commande, pour créer la base (sous Linux / WSL : `sudo apt install sqlite3`)
+- Facultatif : [DB Browser for SQLite](https://sqlitebrowser.org), pour consulter la base avec une interface graphique
 
 ### Base de données
 
-La base n'est **pas versionnée**. On versionne le script SQL, et chacun crée sa base en local à partir de `sql/` :
+La base est un fichier SQLite (`japonais.db`). Il n'est **pas versionné** : chacun le crée en local à partir des scripts de `sql/`.
 
 ```bash
 sqlite3 japonais.db < sql/creation.sql
 ```
+
+> ⚠️ Les scripts utilisent `CREATE TABLE IF NOT EXISTS` : relancer un script modifié ne met **pas** à jour une base existante. Après un changement de schéma, supprimer `japonais.db` et relancer les scripts.
+
+> ⚠️ Le fichier `japonais.db` est cherché dans le dossier **depuis lequel l'appli est lancée**. Si on lance depuis un autre dossier, SQLite crée une base vide sans prévenir.
 
 ### Compilation
 
@@ -115,6 +120,44 @@ Calculés sur les **10 dernières réponses**, avec un minimum de 5 essais :
 | 🟢 Maîtrisé | 80 % ou plus |
 
 Ne compter que les dernières réponses permet à un mot maîtrisé de redescendre si on l'oublie.
+
+## Schéma de la base
+
+Le schéma complet est dans `docs/schema.dbml`.
+
+| Table | Rôle |
+|---|---|
+| `kana` | Un caractère par ligne (あ et ア sont deux lignes), avec son alphabet, son accent et s'il est une combinaison |
+| `romaji` | Les transcriptions possibles (*shi*, *si*, *a*…), chacune une seule fois |
+| `kana_romaji` | Liaison plusieurs-à-plusieurs : quels romaji sont acceptés pour quel kana |
+
+### Choix de conception
+
+- **Une ligne par caractère.** Chaque kana a son propre identifiant, pour que あ et ア aient chacun leur niveau de maîtrise (US9).
+- **Plusieurs romaji par kana.** し accepte *shi* et *si*. Un romaji peut aussi servir à plusieurs kana (*ji* pour じ et ぢ), d'où la table de liaison.
+- **Un romaji principal.** Pour chaque kana, un seul romaji a `est_principal = 1` : c'est lui qui est affiché comme bonne réponse et dans les QCM. Un index unique partiel interdit d'en avoir deux.
+- **Accent et combinaison séparés.** ぎゃ est à la fois accentué et une combinaison : une seule colonne « catégorie » ne pouvait pas le représenter.
+
+### Valeurs possibles
+
+| Colonne | Valeurs |
+|---|---|
+| `kana.type_kana` | `'hiragana'`, `'katakana'` |
+| `kana.accent` | `'aucun'` (par défaut), `'dakuten'`, `'handakuten'` |
+| `kana.est_combinaison` | `0` ou `1` |
+| `kana_romaji.est_principal` | `0` (par défaut) ou `1` |
+
+SQLite n'a ni `ENUM` ni booléen : les énumérations sont des `TEXT` limités par une contrainte `CHECK`, et les booléens des `INTEGER` à 0 ou 1.
+
+### ⚠️ Clés étrangères
+
+SQLite **ne vérifie pas les clés étrangères par défaut**, et ce réglage n'est pas enregistré dans la base. **Chaque connexion** doit exécuter :
+
+```sql
+PRAGMA foreign_keys = ON;
+```
+
+Dans le code Java, ce réglage doit être fait à un seul endroit : dans la méthode qui ouvre la connexion.
 
 ## Conventions de code
 
