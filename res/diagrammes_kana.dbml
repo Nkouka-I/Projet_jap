@@ -1,0 +1,39 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Enum type_kana_enum {
+  hiragana
+  katakana
+}
+
+Enum accent_enum {
+  aucun
+  dakuten
+  handakuten
+}
+
+Table kana {
+  id_kana integer [primary key]
+  caractere varchar [not null, unique]
+  type_kana type_kana_enum [not null]
+  accent accent_enum [not null]
+  est_combinaison boolean [not null, default: false]
+}
+
+Table romaji {
+  id_romaji integer [primary key]
+  transcription varchar [not null, unique]
+}
+
+Table kana_romaji {
+  id_kana integer [not null, ref: > kana.id_kana]
+  id_romaji integer [not null, ref: > romaji.id_romaji]
+  est_principal boolean [not null, default: False]
+
+  indexes {
+    (id_kana, id_romaji) [pk]
+  }
+}
