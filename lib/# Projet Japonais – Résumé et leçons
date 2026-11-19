@@ -1,0 +1,246 @@
+# Projet Japonais – Résumé et leçons
+
+> Simulation d'un projet de groupe en Scrum, pour apprendre à travailler comme développeur dans une équipe.
+> Situation au **17/11/2026** : Sprint Planning du Sprint 1 terminé, prêt à coder.
+
+---
+
+## 1. Le cadre de la simulation
+
+| Rôle | Joué par |
+|---|---|
+| Client | Toi |
+| Product Owner (PO) + Scrum Master (SM) | Claude |
+| Coach (retours et jugements) | Claude |
+| Développeurs : **Frieren**, **Nobara**, **Mob** | Toi, un par un |
+
+- **Méthode** : Scrum. Sprints de 3 semaines, sans date de fin de projet.
+- **Vrai code** et vrais outils (GitHub).
+- **Pas d'imprévus** pour l'instant.
+- **Règle d'or** : chaque dev ne connaît que ce que les autres ont **écrit** (README, issues, commits, Javadoc), pas ce que tu as en tête.
+- **Convention** : préfixer ses messages par le rôle : `[Client]`, `[Frieren]`, `[Nobara]`, `[Mob]`.
+
+### Pourquoi Claude joue PO et SM
+Ton objectif est d'apprendre le métier de **dev en équipe**, pas la gestion de produit. Scrum reste un bon choix, parce que c'est le cadre le plus répandu en entreprise et celui de tes cours. C'est la répartition des rôles qu'on a adaptée, pas la méthode.
+
+---
+
+## 2. Le besoin du client
+
+### Le brief
+Une application pour accompagner son apprentissage du japonais (en complément de YouTube) :
+- **Thème** (français → japonais) et **version** (japonais → français), sur une ou plusieurs listes, en réponse écrite ou en QCM ;
+- **Exercices de kana** (hiragana, katakana) ;
+- une **base de mots** alimentée par le client, rangée en **listes** ;
+- une **bibliothèque** consultable en romaji, kana ou français ;
+- un **score par mot** et une liste **« Erreurs »** ;
+- une interface ergonomique, à dominante **violette**.
+
+### Les réponses aux questions de clarification
+| Sujet | Décision |
+|---|---|
+| Plateforme | **Ordinateur** uniquement ; téléphone peut-être plus tard |
+| Utilisateurs | **Un seul** : le client |
+| Données au départ | Tables hiragana/katakana seulement (avec accents et combinaisons) ; les mots sont ajoutés par le client |
+| Mots | Ajout, modification, suppression ; **plusieurs traductions** acceptées ; kanji facultatif (si absent, on affiche les kana) ; un kanji seul et un mot composé sont deux mots différents |
+| Exercices de kana | **Version uniquement** : un kana s'affiche, réponse en romaji |
+| QCM | 3 ou 5 propositions au total |
+| Plusieurs champs | Juste seulement si **tous** les champs sont justes |
+| Saisie | Clavier japonais du système |
+| Maîtrise | Des niveaux plutôt qu'un pourcentage précis (voir ci-dessous) |
+| Liste « Erreurs » | Mots 🔴 et 🟡 *(hypothèse du PO, à valider)* |
+| Score des kana | Même logique que les mots *(hypothèse du PO, à valider)* |
+
+### Les niveaux de maîtrise
+Calculés sur les **10 dernières réponses**, avec un minimum de 5 essais :
+
+| Niveau | Règle |
+|---|---|
+| ⚪ Nouveau | moins de 5 essais |
+| 🔴 À revoir | moins de 50 % |
+| 🟡 En cours | de 50 à 79 % |
+| 🟢 Maîtrisé | 80 % ou plus |
+
+Ne compter que les dernières réponses permet à un mot maîtrisé de redescendre si on l'oublie.
+
+### Leçons du recueil du besoin
+- On ne code **jamais** juste après un brief. On **reformule**, on **pose des questions**, puis on **priorise**.
+- Il manquait une info fondamentale dans le brief : **sur quel appareil** ? Elle conditionne tous les choix techniques.
+- « Quand on a jugé qu'il est maîtrisé » n'est pas une règle : un ordinateur ne juge pas. Le PO doit traduire un **ressenti** du client en **règle testable**.
+- Un « oui » à plusieurs questions, ou une réponse en une ligne, peut cacher plusieurs interprétations. Le bon réflexe est de **reformuler son interprétation par écrit** pour que l'autre puisse la corriger.
+- Une petite réponse du client peut changer le modèle de données. Exemple : « accepter toutes les romanisations » implique qu'un kana a **plusieurs** romaji.
+
+---
+
+## 3. Le Product Backlog
+
+Classé par priorité (choisie par le client) :
+
+| # | User story | Priorité |
+|---|---|---|
+| US1 | Un kana s'affiche, je réponds en romaji | 1 |
+| US2 | Choisir hiragana/katakana, avec ou sans accents, avec ou sans combinaisons | 1 |
+| US3 | Répondre en écrit ou en QCM (3 ou 5 choix) | 1 |
+| US4 | Ajouter, modifier, supprimer un mot | 2 |
+| US5 | Créer des listes et y ranger des mots | 2 |
+| US6 | Exercice de thème | 3 |
+| US7 | Exercice de version | 4 |
+| US8 | Bibliothèque (recherche) | 5 |
+| US9 | Niveau de chaque mot et de chaque kana | 6 |
+| US10 | Liste « Erreurs » automatique | 6 |
+
+Format d'une user story : *« En tant que…, je veux…, afin de… »*. On ne détaille que le haut du backlog et on affine au fur et à mesure.
+
+---
+
+## 4. Les décisions techniques (et ce qu'on en a pensé)
+
+| Décision | Verdict | Ce qu'il faut retenir |
+|---|---|---|
+| **Java** | ✅ | Bien justifié : tu le connais, tu veux progresser, et l'objet colle au domaine. Mais Android n'utilise **pas les mêmes bibliothèques graphiques** : l'interface devra être réécrite. |
+| **MariaDB + phpMyAdmin** | ❌ puis remplacé | phpMyAdmin est un outil pour le dev, pas pour l'appli. Une base **serveur** n'est pas adaptée à une appli perso sur ordinateur, et le serveur de l'école ne sera plus là. |
+| **SQLite** | ✅ | Solution **proportionnée au besoin** : embarquée, gratuite, sans serveur, utilisable après l'école. Sur ordinateur, on l'utilise via JDBC ; sur Android, avec d'autres classes. D'où l'intérêt du **DAO**. |
+| **Bibliothèque graphique** | ... | À comparer : **Swing** et **JavaFX** (critère : DA violette, rendu moderne). |
+| **Sprints de 3 semaines** | ✅ acceptable | Scrum autorise jusqu'à un mois. Plus le sprint est long, plus une erreur de compréhension coûte cher. |
+
+### Notions apprises
+- **Spike** : tâche de **recherche** limitée dans le temps, dont le livrable est une **décision argumentée**.
+- **JDBC** : la façon standard dont Java parle à une base (le JAR dans `lib` vu en cours). Ce savoir est réutilisable avec presque toutes les bases.
+- **Base serveur ou embarquée** : MariaDB tourne comme un serveur à part ; SQLite est un simple fichier lu par l'application.
+- **Patron DAO** : isoler tout le SQL dans des classes dédiées, pour pouvoir changer de base sans toucher au reste.
+- **Séparation des responsabilités** : une classe métier (ex. calcul du niveau de maîtrise) ne contient **ni affichage ni SQL**. Elle est donc testable et réutilisable sur Android.
+- **Capacité et vélocité** : quand on ne connaît pas son temps disponible, on prend **peu** au premier sprint, on **mesure** ce qui a été terminé, puis on ajuste. On note le temps passé sur chaque tâche.
+
+---
+
+## 5. MVC : architecture ≠ répartition du travail
+
+Ta première idée : Frieren fait le Modèle, Nobara la Vue, Mob le Contrôleur.
+
+- **MVC comme architecture** : ✅ très bon choix.
+- **MVC comme découpage du travail** : ❌ erreur classique. Personne ne peut tester quoi que ce soit avant que les trois aient fini, chaque changement d'une couche casse les autres, la charge est déséquilibrée, et il n'y a rien à montrer au client si une couche est en retard.
+
+**À retenir** : on découpe en **tranches verticales**. Chaque dev livre une **fonctionnalité complète** qui traverse les couches nécessaires.
+
+---
+
+## 6. Le Sprint 1
+
+### Stories retenues
+- ✅ **US1** : exercice kana
+- ✅ **US2** : choix des kana
+- ⏸️ **US3** : QCM, en bonus si le temps le permet
+
+**Leçon** : on prend le **plus petit ensemble qui a de la valeur** pour le client, pas « toute la priorité 1 ».
+
+### Critères d'acceptation
+**US1**
+- Chaque kana de la sélection apparaît **une fois**, dans un ordre aléatoire.
+- L'utilisateur tape le romaji et valide ; l'appli dit si c'est juste et, si c'est faux, montre la bonne réponse.
+- **Toutes les romanisations courantes** sont acceptées : *shi/si*, *tsu/tu*, *chi/ti*, *fu/hu*, *ji/zi*, *ji/di* (ぢ), *zu/du* (づ), *o/wo* (を), et leurs équivalents dans les combinaisons (*sha/sya*, *cha/tya*, *ja/jya/zya*…).
+- La casse et les espaces autour sont ignorés.
+- Un **score en cours** est visible pendant l'exercice.
+- Un **bouton Quitter** arrête l'exercice et affiche le score sur les kana déjà faits.
+- À la fin, le score s'affiche.
+
+**US2**
+- On peut cocher hiragana et/ou katakana, et inclure ou non les accents et les combinaisons.
+- Impossible de lancer un exercice avec une sélection vide.
+
+### Tâches et répartition
+| # | Tâche | Dev |
+|---|---|---|
+| T1 | Dépôt GitHub, structure (`model`, `dao`, `view`, `controller`), README avec conventions et règles Git | Frieren |
+| T2 | Table des kana dans SQLite ⚠️ *un kana peut avoir plusieurs romaji* | Frieren |
+| T3 | Script d'insertion des ~200 kana | Frieren |
+| T4 | Classe `Kana` + `KanaDAO` | Frieren |
+| T5 | Spike bibliothèque graphique (Swing / JavaFX) | Nobara |
+| T6 | `ParametresExercice` + écran de choix (US2) | Nobara |
+| T7 | `ExerciceKana` : tirage, vérification, score (métier pur) | Mob |
+| T8 | Écran d'exercice (US1) | Mob |
+| T9 | Tests unitaires de `ExerciceKana` | Mob |
+
+### Ordre de travail (un dev à la fois)
+1. **Frieren** fait T1, puis **écrit les signatures** de `Kana` et `KanaDAO` dans le README ou une issue, **avant** de les coder.
+2. **Nobara** définit les attributs de `ParametresExercice`, dont Mob aura besoin.
+3. **Mob** code uniquement à partir de ce qui est écrit.
+
+Si un dev a besoin de quelque chose qui n'est pas écrit, il **ne l'invente pas** : il le demande dans une issue.
+
+---
+
+## 7. Definition of Done
+
+**Une tâche est terminée quand :**
+1. le code compile et l'appli se lance ;
+2. les classes métier touchées ont des tests unitaires qui passent ;
+3. les classes et méthodes **publiques** ont leur Javadoc ;
+4. le code respecte les conventions du README ;
+5. une pull request a été relue par un autre dev ;
+6. la branche est fusionnée dans `main`, qui compile toujours ;
+7. le ticket est en « Terminé », avec le temps passé noté.
+
+**Une user story est terminée quand** toutes ses tâches le sont, que ses critères d'acceptation sont vérifiés et que le PO l'a validée.
+
+### Leçons
+- **DoD** = qualité, la même pour tout le projet. **Critères d'acceptation** = fonctionnalité, propres à chaque story.
+- Tes premières idées (« objet », « Javadoc ») étaient des **conventions de code**. Elles vont dans le README.
+- « Pas de programmation fonctionnelle » : une règle d'équipe doit avoir une **raison**. Les bibliothèques graphiques Java utilisent beaucoup les lambdas.
+- La Javadoc sur chaque variable, c'est trop lourd : on documente surtout ce qui est **public**.
+
+---
+
+## 8. Stratégie Git (GitHub Flow)
+
+1. `main` protégée : pas de push direct, elle compile toujours.
+2. Une tâche = une issue = une branche : `feature/T4-kana-dao`, `fix/...`, `docs/...`.
+3. Commits petits, avec préfixe et verbe à l'impératif : `feat: ajoute la classe KanaDAO`.
+4. Avant la PR : récupérer `main` et régler les conflits chez soi.
+5. PR : ce qui a été fait, comment tester, `Closes #12`, relecture par un autre dev.
+6. Après la fusion : supprimer la branche.
+7. `.gitignore` : fichiers compilés, IDE, fichier `.db`. On versionne le **script SQL**, pas la base.
+
+**Adaptation à la simulation** : avec un seul compte, pas d'approbation obligatoire. On relit avec des commentaires, et on met le dev dans le titre : `[Frieren] T4 – KanaDAO`.
+
+**Leçon** : GitHub est un **outil**. Une stratégie Git, ce sont les **règles** de l'équipe.
+
+---
+
+## 9. Vocabulaire
+
+| Terme | Sens |
+|---|---|
+| Product Owner | Porte la vision produit, gère et priorise le backlog, répond aux questions métier |
+| Scrum Master | Garant du cadre Scrum, anime les cérémonies, aide à lever les blocages |
+| Product Backlog | Liste priorisée de tout ce que le produit doit faire |
+| User story | Besoin formulé du point de vue de l'utilisateur |
+| Critères d'acceptation | Conditions vérifiables pour qu'une story soit acceptée |
+| MVP | Plus petite version réellement utile du produit |
+| Sprint / timebox | Période de durée fixe ; c'est le travail qui varie, pas la durée |
+| Sprint Planning / Review / Rétrospective | Planifier le sprint / montrer le résultat au client / améliorer la façon de travailler |
+| Definition of Done | Checklist commune de « terminé » |
+| Spike | Tâche de recherche limitée dans le temps |
+| Vélocité | Quantité de travail réellement terminée par sprint |
+| Tranche verticale | Découpage par fonctionnalité qui traverse les couches |
+| Pull request | Demande de fusion d'une branche, avec relecture |
+
+---
+
+## 10. Tes réflexes à travailler
+
+- ✅ **Points forts** : tu justifies tes choix, tu raisonnes à partir du besoin client (SQLite), tu fais tes recherches seule, et tu demandes de l'aide quand tu ne sais pas.
+- 🔧 **À travailler** :
+  - distinguer **architecture** et **répartition du travail** ;
+  - distinguer **besoin client** et **choix technique** ;
+  - vérifier que ta recherche répond **à la question posée** (ordinateur, pas Android) ;
+  - reformuler par écrit pour éviter les malentendus ;
+  - être précise dans les noms et les responsabilités.
+
+---
+
+## 11. Prochaines étapes
+
+1. **Frieren** lance le sprint : T1 (dépôt, structure, README avec conventions et règles Git), puis la décision sur la table des kana avec plusieurs romaji.
+2. **Nobara** fait le spike graphique (Swing ou JavaFX) et documente sa décision.
+3. **Mob** attend que les signatures soient écrites, puis attaque `ExerciceKana`.
+4. À la fin des 3 semaines : **Sprint Review** avec le client (valider les hypothèses du PO sur « Erreurs » et le score des kana), puis **Rétrospective**.
