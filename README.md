@@ -39,7 +39,7 @@ Le détail de chaque story (critères d'acceptation) est dans les issues GitHub.
 |---|---|---|
 | Langage | Java | Langage maîtrisé par l'équipe ; l'approche objet colle au domaine |
 | Base de données | SQLite (via JDBC) | Base embarquée dans un simple fichier : pas de serveur, gratuite, adaptée à une appli perso |
-| Interface graphique | Swing ou JavaFX | *À décider (spike T5)* |
+| Interface graphique | JavaFX | Plus récent et meilleur rendu |
 | Plateforme | Ordinateur | Une version téléphone est possible plus tard |
 
 ## Architecture
@@ -55,6 +55,7 @@ src/
 lib/              pilote JDBC SQLite
 sql/              script de création et d'insertion des données
 test/             tests unitaires
+res/              Ressources non codé (Diagrammes, Schema...)
 ```
 
 Règles de dépendance :
@@ -69,7 +70,8 @@ Le travail est découpé en **tranches verticales** : chaque tâche livre une fo
 
 ### Prérequis
 
-- JDK (version à préciser)
+- le JAR sqlite-jdbc-3.46.1.3.jar dans lib/ 
+- sqlite3 pour créer la base à partir du script.
 - Le pilote JDBC SQLite dans `lib/`
 
 ### Base de données
